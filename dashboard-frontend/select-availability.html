@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Availability</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+    h2 { text-align: center; color: #333; }
+    .meta { color: #888; font-size: 0.95em; margin-bottom: 16px; }
+    .btns { display: flex; gap: 16px; justify-content: center; margin-top: 24px; }
+    button { padding: 10px 24px; border: none; border-radius: 4px; font-size: 1em; cursor: pointer; }
+    .yes { background: #2e7d32; color: #fff; }
+    .no { background: #c62828; color: #fff; }
+    .msg { text-align: center; margin-top: 24px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Select Your Availability</h2>
+    <div class="meta" id="slot-info"></div>
+    <div class="btns">
+      <button class="yes" onclick="respond(true)">Available</button>
+      <button class="no" onclick="respond(false)">Not Available</button>
+    </div>
+    <div class="msg" id="msg"></div>
+  </div>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const call_id = urlParams.get('call_id');
+    const slot_id = urlParams.get('slot_id');
+    const participant_email = urlParams.get('participant_email');
+    async function fetchSlot() {
+      const res = await fetch(`/api/slots/${call_id}`);
+      const data = await res.json();
+      const slot = data.slots.find(s => s.id == slot_id);
+      document.getElementById('slot-info').innerText = slot ? `Proposed Time: ${new Date(slot.slot).toLocaleString()}` : 'Slot not found.';
+    }
+    async function respond(available) {
+      const res = await fetch('/api/slots/respond', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slot_id, participant_email, available })
+      });
+      const data = await res.json();
+      document.getElementById('msg').innerText = data.message || 'Response recorded.';
+    }
+    fetchSlot();
+  </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule a Call</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+    h2 { text-align: center; color: #333; }
+    label { display: block; margin-top: 16px; }
+    input, select { width: 100%; padding: 8px; margin-top: 4px; border-radius: 4px; border: 1px solid #ccc; }
+    button { margin-top: 24px; width: 100%; padding: 12px; background: #1565c0; color: #fff; border: none; border-radius: 4px; font-size: 1em; cursor: pointer; }
+    .msg { text-align: center; margin-top: 24px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Schedule a Call</h2>
+    <form id="call-form">
+      <label>Recruiter Name<input name="recruiter_name" required></label>
+      <label>Recruiter Email<input name="recruiter_email" type="email" required></label>
+      <label>Candidate Name<input name="candidate_name" required></label>
+      <label>Candidate Email<input name="candidate_email" type="email" required></label>
+      <label>Expert Name<input name="expert_name" required></label>
+      <label>Expert Email<input name="expert_email" type="email" required></label>
+      <label>Call Type
+        <select name="call_type" required>
+          <option value="screening">Screening</option>
+          <option value="validation">Validation</option>
+          <option value="final">Final</option>
+        </select>
+      </label>
+      <label>Duration (minutes)
+        <select name="duration" required>
+          <option value="30">30</option>
+          <option value="45">45</option>
+          <option value="60">60</option>
+        </select>
+      </label>
+      <label>Schedule Deadline<input name="deadline" type="datetime-local" required></label>
+      <button type="submit">Schedule Call</button>
+    </form>
+    <div class="msg" id="msg"></div>
+  </div>
+  <script>
+    document.getElementById('call-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form));
+      data.duration = parseInt(data.duration);
+      let msg = '';
+      try {
+        const res = await fetch('/api/calls', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (!res.ok) {
+          msg = (result.error || 'Failed to schedule call') + (result.details ? ('\nDetails: ' + result.details) : '');
+        } else {
+          msg = result.message;
+          form.reset();
+        }
+      } catch (err) {
+        msg = 'Network or server error: ' + err.message;
+      }
+      document.getElementById('msg').innerText = msg;
+    };
+  </script>
+</body>
+</html>

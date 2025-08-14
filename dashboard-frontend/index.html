@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Call Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+    h1 { text-align: center; color: #333; }
+    .call { border-bottom: 1px solid #eee; padding: 16px 0; }
+    .call:last-child { border-bottom: none; }
+    .logs { margin: 12px 0 0 24px; }
+    .log { font-size: 0.97em; margin-bottom: 6px; }
+    .log.success { color: #2e7d32; }
+    .log.error { color: #c62828; }
+    .log.info { color: #1565c0; }
+    .call-header { font-weight: bold; }
+    .meta { color: #888; font-size: 0.95em; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Call Scheduling Dashboard</h1>
+    <div id="calls"></div>
+  </div>
+  <script>
+    async function fetchDashboard() {
+      const res = await fetch('/api/dashboard');
+      const data = await res.json();
+      return data.calls || [];
+    }
+    function renderLogs(logs) {
+      if (!logs || !logs.length) return '<div class="meta">No logs for this call.</div>';
+      return logs.map(log => `<div class="log ${log.status}"><b>[${log.action}]</b> ${log.message} <span class="meta">(${new Date(log.created_at).toLocaleString()})</span></div>`).join('');
+    }
+    function renderCalls(calls) {
+      if (!calls.length) return '<div>No calls found.</div>';
+      return calls.map(call => `
+        <div class="call">
+          <div class="call-header">${call.call_type.charAt(0).toUpperCase() + call.call_type.slice(1)} Interview</div>
+          <div class="meta">Recruiter: ${call.recruiter_name} (${call.recruiter_email})<br>
+          Candidate: ${call.candidate_name} (${call.candidate_email})<br>
+          Expert: ${call.expert_name} (${call.expert_email})<br>
+          Duration: ${call.duration} min | Deadline: ${new Date(call.deadline).toLocaleString()}<br>
+          Created: ${new Date(call.created_at).toLocaleString()}</div>
+          <div class="logs">
+            <b>Logs:</b>
+            ${renderLogs(call.logs)}
+          </div>
+          <div class="slot-responses">
+            <b>Slot Responses:</b>
+            ${call.slot_responses && call.slot_responses.length ? `
+              <ul>
+                ${call.slot_responses.map(resp => `
+                  <li>
+                    <span class="meta">${resp.participant_email}</span> - 
+                    <b>${resp.slot_time ? new Date(resp.slot_time).toLocaleString() : 'N/A'}</b>
+                    <span class="meta">[${resp.available ? 'Available' : 'Unavailable'}]</span>
+                  </li>
+                `).join('')}
+              </ul>
+            ` : '<div class="meta">No slot responses yet.</div>'}
+          </div>
+          <div class="confirmed-slot">
+            <b>Confirmed Slot:</b>
+            ${call.confirmed_slot ? `<span class="meta">${new Date(call.confirmed_slot).toLocaleString()}</span>` : '<span class="meta">Not yet scheduled.</span>'}
+          </div>
+        </div>
+      `).join('');
+    }
+    async function load() {
+      const calls = await fetchDashboard();
+      document.getElementById('calls').innerHTML = renderCalls(calls);
+    }
+    load();
+  </script>
+</body>
+</html>
