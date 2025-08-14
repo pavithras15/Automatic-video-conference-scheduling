@@ -99,8 +99,7 @@ Automate video conference scheduling between recruiters, candidates, and Mastro 
 ---
 
 ## Contact & Support
-For questions or demo access, contact: pavithra.puppy15@gmail.com
-
+For questions or demo access, contact: sara.pavithra15@gmail.com
 ---
 
 ## Screenshots & Demo
